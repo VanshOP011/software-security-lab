@@ -1,0 +1,15 @@
+import hashlib
+username = input("Enter username: ")
+password = input("Enter password: ")
+
+# MD5 Hash
+md5_hash = hashlib.md5(password.encode()).hexdigest()
+
+print("Password:", password)
+print("MD5 Hash:", md5_hash)
+
+# SHA-256 Hash
+sha256_hash = hashlib.sha256(password.encode()).hexdigest()
+
+print("\nPassword:", password)
+print("SHA-256 Hash:", sha256_hash)

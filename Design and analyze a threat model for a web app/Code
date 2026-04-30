@@ -1,0 +1,87 @@
+<?php
+session_start();
+
+// Database connection
+$conn = new mysqli("localhost", "root", "", "test");
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$msg = "";
+
+if (isset($_POST['login'])) {
+
+    // Sanitize input
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    //CONFIG VARIABLES 
+    $max_attempts = 5;
+    $lock_duration = 5 * 60; // 5 minutes
+
+
+    //DATABASE QUERY (MODIFIED LINE)
+    $stmt = $conn->prepare("SELECT password, failed_attempts, lock_time FROM users WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+
+
+        //LOCK CHECK
+        if ($row['lock_time'] && (time() - strtotime($row['lock_time']) < $lock_duration)) {
+            $msg = "Account is locked. Try again after 5 minutes.";
+        } 
+	else {
+
+
+            // Verify password
+            if (password_verify($password, $row['password'])) {
+
+                //RESET ATTEMPTS
+                $reset = $conn->prepare("UPDATE users SET failed_attempts = 0, lock_time = NULL WHERE username = ?");
+                $reset->bind_param("s", $username);
+                $reset->execute();
+
+                $msg = "Login Successful";
+
+            } else {
+
+                //INCREMENT FAILED ATTEMPTS
+                $failed_attempts = $row['failed_attempts'] + 1;
+
+
+                //LOCK ACCOUNT LOGIC
+                if ($failed_attempts >= $max_attempts) {
+
+                    $lock = $conn->prepare("UPDATE users SET failed_attempts = ?, lock_time = NOW() WHERE username = ?");
+                    $lock->bind_param("is", $failed_attempts, $username);
+                    $lock->execute();
+
+                    $msg = "Account locked due to multiple failed attempts.";
+
+                } else {
+
+                    //UPDATE ATTEMPTS
+                    $update = $conn->prepare("UPDATE users SET failed_attempts = ? WHERE username = ?");
+                    $update->bind_param("is", $failed_attempts, $username);
+                    $update->execute();
+
+                    //SHOW REMAINING ATTEMPTS
+                    $remaining = $max_attempts - $failed_attempts;
+                    $msg = "Invalid credentials. Attempts left: $remaining";
+                }
+            }
+        }
+
+    } else {
+        $msg = "Invalid Username or Password";
+    }
+
+    $stmt->close();
+}
+?>
