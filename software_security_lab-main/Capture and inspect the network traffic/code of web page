@@ -1,0 +1,82 @@
+<?php
+$conn = new mysqli("localhost", "root", "", "test");
+$msg = "";
+
+if ($conn->connect_error) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
+if (isset($_POST['login'])) {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+    $result = mysqli_query($conn, $query);
+
+    if (mysqli_num_rows($result) > 0) {
+        $msg = "Login Successful";
+    } else {
+        $msg = "Invalid Username or Password";
+    }
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Secure Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #4e54c8, #8f94fb);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        input[type="submit"] {
+            background: #4e54c8;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        p {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>User Login</h2>
+
+    <form method="POST">
+<label> User Name: </label>
+<input type="text" name="username" required />
+
+<label> Password: </label>
+<input type="password" name="password" required />
+
+<input type="submit" name="login" value="Login">
+<label name="msg"> <?php echo $msg; ?></label>
+</form>
+</div>
+
+</body>
+</html>

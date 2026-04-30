@@ -1,0 +1,40 @@
+import hashlib
+import os
+
+# Storage dictionary (simulating database)
+data = {}
+
+# ---------------- REGISTER ----------------
+username = input("Create username: ")
+password = input("Create password: ")
+
+# Generate random salt
+salt = os.urandom(8).hex()
+
+# Hash password + salt
+hashed_password = hashlib.sha256((password + salt).encode()).hexdigest()
+
+# Store user data
+data[username] = (hashed_password, salt)
+
+print("\nRegistration successful")
+print("Salt generated:", salt)
+print("Salted Hash:", hashed_password)
+
+# ---------------- LOGIN ----------------
+print("\nLogin Now")
+login_user = input("Enter username: ")
+login_pass = input("Enter password: ")
+
+if login_user in data:
+    stored_hash, stored_salt = data[login_user]
+
+    # Hash entered password with stored salt
+    login_hash = hashlib.sha256((login_pass + stored_salt).encode()).hexdigest()
+
+    if login_hash == stored_hash:
+        print("Login Successful")
+    else:
+        print("Wrong password")
+else:
+    print("Username not found")

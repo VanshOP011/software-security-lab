@@ -1,0 +1,22 @@
+import hashlib
+
+# Stored values (example)
+stored_username = "admin"
+salt = "random_salt"
+stored_password = hashlib.sha256(("12345" + salt).encode()).hexdigest()
+
+username = input("Enter username: ")
+password = input("Enter password: ")
+
+# Input validation
+if not username.isalnum():
+    print("Invalid username format")
+    exit()
+
+# Hash entered password
+hashed_password = hashlib.sha256((password + salt).encode()).hexdigest()
+
+if username == stored_username and hashed_password == stored_password:
+    print("Login successful")
+else:
+    print("Invalid credentials")
